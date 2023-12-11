@@ -1,2 +1,2 @@
-# controle_despesas_local
- Controle de despesas desenvolvido em Python + tkinter e banco sqlite3
+# controle_despesas
+ App para controle de despesas desenvolvido em Python + tkinter
