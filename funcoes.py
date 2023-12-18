@@ -9,22 +9,36 @@ class ControleDespesasFuncoes:
         self.root = root
         self.inicializar_interface()
         self.conexao_banco()
+        self.criar_tabela_despesas()
+        self.tela_relatorio_aberta = False
+        self.tela_cadastro_aberta = False
 
     def criar_tabela_despesas(self):
-        # Criar tabela de despesas se não existir
-        cursor = self.conexao_bd.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS despesas (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                classificacao TEXT NOT NULL,
-                tipo TEXT NOT NULL,
-                descricao TEXT NOT NULL,
-                valor REAL NOT NULL,
-                data TEXT NOT NULL
-            )
-        """)
-        self.conexao_bd.commit()
-        cursor.close()
+        try:
+            cursor = self.conexao_bd.cursor()
+
+            # Verificar se a tabela já existe
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='despesas';")
+            tabela_existe = cursor.fetchone() is not None
+
+            # Se a tabela não existir, crie-a
+            if not tabela_existe:
+                cursor.execute('''
+                    CREATE TABLE despesas (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        classificacao TEXT,
+                        descricao TEXT,
+                        valor REAL,
+                        tipo TEXT,
+                        data TEXT
+                    )
+                ''')
+                self.conexao_bd.commit()
+
+            cursor.close()
+
+        except sqlite3.Error as e:
+            print(f"Erro ao criar a tabela de despesas: {e}")
 
     def inicializar_interface(self):
         caminho_imagem = "/Users/lucasparreira/Documents/Projects/controle_despesas/old-vintage-pc-clipart-design-illustration-free-png.png"
@@ -41,6 +55,8 @@ class ControleDespesasFuncoes:
         self.conexao_bd = sqlite3.connect('controle_despesas.db')
 
     def abrir_tela_cadastro(self):
+        self.tela_cadastro_aberta = True
+
         nova_janela = tk.Toplevel(self.root)
         nova_janela.title("Cadastro de Despesa")
         nova_janela.transient(self.root)
@@ -84,13 +100,13 @@ class ControleDespesasFuncoes:
         btn_salvar.grid(row=5, column=0, columnspan=2, pady=10)
 
     def salvar_despesa(self):
-        classificacao = self.combo_classificacao.get()
-        descricao = self.entry_descricao.get()
-        valor_str = self.entry_valor.get()
-        tipo = self.combo_tipo.get()
-        data = self.cal_data.get_date()
-
         try:
+            classificacao = self.combo_classificacao.get()
+            descricao = self.entry_descricao.get()
+            valor_str = self.entry_valor.get()
+            tipo = self.combo_tipo.get()
+            data = self.cal_data.get_date()
+
             # Verificar se o campo de valor não está vazio
             if not valor_str:
                 messagebox.showerror("Erro", "O campo de valor não pode ficar vazio.")
@@ -120,6 +136,8 @@ class ControleDespesasFuncoes:
             messagebox.showerror("Erro", f"Erro ao cadastrar despesa: {str(e)}")
 
     def abrir_tela_relatorio(self):
+        self.tela_relatorio_aberta = True
+
         nova_janela = tk.Toplevel(self.root)
         nova_janela.title("Relatório de Despesas")
         nova_janela.transient(self.root)
@@ -280,7 +298,24 @@ class ControleDespesasFuncoes:
             except Exception as e:
                 messagebox.showerror("Erro", f"Erro ao excluir despesa: {str(e)}")
 
+    def verificar_tabela_despesas(self):
+        try:
+            cursor = self.conexao_bd.cursor()
 
+            # Execute uma consulta para verificar a existência da tabela
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='despesas';")
+
+            # Recupere o resultado da consulta
+            tabela_existe = cursor.fetchone() is not None
+
+            cursor.close()
+            return tabela_existe
+
+        except sqlite3.Error as e:
+            print(f"Erro ao verificar a tabela de despesas: {e}")
+            return False
+    
+    
     def sair(self):
         self.conexao_bd.close()
         self.root.destroy()
