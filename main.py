@@ -11,16 +11,6 @@ class ControleDespesasApp:
         self.root = root
         self.root.title("Controle de Orçamento")
         self.root.geometry("1000x600")
-
-        caminho_imagem = "/Users/lucasparreira/Documents/Projects/controle_despesas/old-vintage-pc-clipart-design-illustration-free-png.png"
-        imagem_original = Image.open(caminho_imagem)
-        largura_desejada = 400  
-        altura_desejada = 300  
-        imagem_redimensionada = imagem_original.resize((largura_desejada, altura_desejada), Image.ANTIALIAS)
-        self.imagem = ImageTk.PhotoImage(imagem_redimensionada)
-
-        label_imagem = tk.Label(self.root, image=self.imagem)
-        label_imagem.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
         
         funcoes = ControleDespesasFuncoes(root=root)
         funcoes.conexao_banco()
@@ -35,14 +25,9 @@ class ControleDespesasApp:
         menu_bar.add_cascade(label="Menu", menu=opcoes_menu)
         opcoes_menu.add_command(label="Cadastro", command=funcoes.abrir_tela_cadastro)
         opcoes_menu.add_command(label="Relatório", command=funcoes.abrir_tela_relatorio)
+        opcoes_menu.add_command(label="Sobre o App", command=funcoes.abrir_tela_sobre_app)
         opcoes_menu.add_separator()
         opcoes_menu.add_command(label="Sair", command=funcoes.sair)
-
-        # Carregar um ícone de lixeira para exclusão
-        self.icon_path = "/Users/lucasparreira/Documents/Projects/controle_despesas/trash.png"
-        self.trash_icon = Image.open(self.icon_path)
-        self.trash_icon = self.trash_icon.resize((20, 20), Image.ANTIALIAS)
-        self.trash_icon = ImageTk.PhotoImage(self.trash_icon)
 
 
          # Widgets para o cadastro

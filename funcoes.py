@@ -3,6 +3,8 @@ from tkinter import StringVar, ttk, messagebox
 from tkcalendar import DateEntry
 from PIL import Image, ImageTk
 import sqlite3
+from tkinter import font
+
 
 class ControleDespesasFuncoes:
     def __init__(self, root):
@@ -41,11 +43,12 @@ class ControleDespesasFuncoes:
             print(f"Erro ao criar a tabela de despesas: {e}")
 
     def inicializar_interface(self):
-        caminho_imagem = "/Users/lucasparreira/Documents/Projects/controle_despesas/old-vintage-pc-clipart-design-illustration-free-png.png"
+        #caminho_imagem = "/Users/lucasparreira/Documents/Projects/controle_despesas/old-vintage-pc-clipart-design-illustration-free-png.png"
+        caminho_imagem = r"C:\Users\U362062\Documents\Scripts\controle_despesas_local\old-vintage-pc-clipart-design-illustration-free-png.png"
         imagem_original = Image.open(caminho_imagem)
         largura_desejada = 400  
         altura_desejada = 300  
-        imagem_redimensionada = imagem_original.resize((largura_desejada, altura_desejada), Image.ANTIALIAS)
+        imagem_redimensionada = imagem_original.resize((largura_desejada, altura_desejada))#, Image.ANTIALIAS)
         self.imagem = ImageTk.PhotoImage(imagem_redimensionada)
 
         label_imagem = tk.Label(self.root, image=self.imagem)
@@ -72,6 +75,9 @@ class ControleDespesasFuncoes:
         self.combo_classificacao.set(tipos_classificacao[0])
         dropdown_classificacao = tk.OptionMenu(frame_cadastro, self.combo_classificacao, *tipos_classificacao)
         dropdown_classificacao.grid(row=0, column=1, padx=10, pady=10)
+        self.tipos_despesa = ["Mensal", "Quinzenal", "Semanal"]
+        self.combo_tipo = tk.StringVar()
+        self.combo_tipo.set(self.tipos_despesa[0])
 
         lbl_descricao = tk.Label(frame_cadastro, text="Descrição:")
         lbl_descricao.grid(row=1, column=0, padx=10, pady=10)
@@ -98,6 +104,18 @@ class ControleDespesasFuncoes:
 
         btn_salvar = tk.Button(frame_cadastro, text="Salvar", command=self.salvar_despesa)
         btn_salvar.grid(row=5, column=0, columnspan=2, pady=10)
+
+    def carregar_relatorio(self):
+            # Limpa os dados existentes na treeview
+            for item in self.tree.get_children():
+                self.tree.delete(item)
+
+            # Preenche a treeview com os dados do banco de dados
+            cursor = self.conexao_bd.cursor()
+            cursor.execute("SELECT * FROM despesas")
+            for row in cursor.fetchall():
+                self.tree.insert("", tk.END, values=row)
+            cursor.close()
 
     def salvar_despesa(self):
         try:
@@ -130,6 +148,8 @@ class ControleDespesasFuncoes:
             self.combo_tipo.set(self.tipos_despesa[0])
             self.cal_data.set_date(None)
 
+            self.carregar_relatorio()
+
         except ValueError:
             messagebox.showerror("Erro", "O valor deve ser numérico.")
         except Exception as e:
@@ -154,20 +174,52 @@ class ControleDespesasFuncoes:
         self.tree.heading("#4", text="Valor", anchor=tk.W)
         self.tree.heading("#5", text="Data", anchor=tk.W)
 
-        # for col in tree["columns"]:
-        #     tree.column(col, width=tk.BU, minwidth=100, anchor=tk.W)
+         # Configurar tags para alinhar à esquerda
+        self.tree.tag_configure("left", anchor="w")
 
         self.tree.pack(expand=True, fill=tk.BOTH)
 
         # Preenche a treeview com os dados do banco de dados
         cursor = self.conexao_bd.cursor()
-        cursor.execute("SELECT * FROM despesas")
-        for row in cursor.fetchall():
-            self.tree.insert("", tk.END, values=row)
+        cursor.execute("SELECT id,classificacao,tipo, descricao, valor, data FROM despesas")
+        resultados = cursor.fetchall()
+        #print("Resultados do banco de dados:", resultados) 
+        for row in resultados:
+            self.tree.insert("", tk.END, values=row[1:], tags=("left",))
         cursor.close()
+
+        # Define a largura das colunas com base no conteúdo
+        for col in self.tree["columns"]:
+            self.tree.column(col, width=font.Font().measure(col))  # Inicia com a largura do cabeçalho
+            for item in self.tree.get_children():
+                value = self.tree.set(item, col)
+                width = font.Font().measure(value)
+                if width > self.tree.column(col, option="width"):
+                    self.tree.column(col, width=width)
 
         self.tree.bind("<Double-1>", lambda event: self.editar_despesa(self.tree))
         self.tree.bind("<KeyPress-d>", self.excluir_despesa)
+
+    def abrir_tela_sobre_app(self):
+        self.tela_cadastro_aberta = False
+
+        nova_janela = tk.Toplevel(self.root)
+        nova_janela.title("Sobre o App")
+        nova_janela.transient(self.root)
+
+        frame_sobre = tk.Frame(nova_janela)
+        frame_sobre.pack(padx=20, pady=20)
+
+        # Widgets para o cadastro
+        lbl_classificacao = tk.Label(frame_sobre, text="Este aplicativo foi construido com o intuito de facilitar o controle de despesas pessoais, visando seu acesso principal atraves de um notebook / computador.")
+        lbl_classificacao.grid(row=0, column=0, padx=10, pady=10)
+
+        lbl_classificacao_02 = tk.Label(frame_sobre, text="Em uma versao futura sera disponibilizado acesso via rede, possibilitando o compartilhamento dos dados em mais de uma estacao simultaneamente.")
+        lbl_classificacao_02.grid(row=1,column=0, padx=10, pady=10)
+
+        lbl_classificacao_03 = tk.Label(frame_sobre, text="Versao 0.8 - 2024")
+        lbl_classificacao_03.grid(row=2,column=0,padx=10, pady=10)
+
 
     def editar_despesa(self, janela_pai):
         # Obtém o item selecionado na treeview
@@ -235,17 +287,6 @@ class ControleDespesasFuncoes:
 
         cal_data.bind("<KeyPress-Return>", lambda event: self.salvar_edicao(self.tree, id_despesa, entry_classificacao.get(), entry_descricao.get(), entry_valor.get(), entry_tipo.get(), cal_data.get_date(), janela_pai))
 
-    def carregar_relatorio(self):
-        # Limpa os dados existentes na treeview
-        for item in self.tree.get_children():
-            self.tree.delete(item)
-
-        # Preenche a treeview com os dados do banco de dados
-        cursor = self.conexao_bd.cursor()
-        cursor.execute("SELECT * FROM despesas")
-        for row in cursor.fetchall():
-            self.tree.insert("", tk.END, values=row)
-        cursor.close()
 
     def salvar_edicao(self, tree, id_despesa, classificacao, descricao, valor, tipo, data, janela_pai):
         try:
@@ -286,7 +327,7 @@ class ControleDespesasFuncoes:
 
                 # Executar a exclusão no banco de dados
                 cursor = self.conexao_bd.cursor()
-                cursor.execute("DELETE FROM despesas WHERE id = %s", (id_despesa,))
+                cursor.execute("DELETE FROM despesas WHERE id = ?", (id_despesa,))
                 self.conexao_bd.commit()
                 cursor.close()
 
