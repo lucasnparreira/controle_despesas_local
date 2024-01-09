@@ -171,19 +171,19 @@ class ControleDespesasFuncoes:
         self.tree = ttk.Treeview(frame_relatorio, column=("ID","Classificação","Tipo","Descrição", "Valor", "Data"),show='headings')
         self.tree.column("#1", anchor=tk.W)
         self.tree.heading("#1", text="ID")
-        self.tree.column("#2", anchor=tk.CENTER)
+        self.tree.column("#2", anchor=tk.W)
         self.tree.heading("#2", text="Classificação")
-        self.tree.column("#3", anchor=tk.CENTER)
+        self.tree.column("#3", anchor=tk.W)
         self.tree.heading("#3", text="Tipo")
-        self.tree.column("#4", anchor=tk.CENTER)
+        self.tree.column("#4", anchor=tk.W)
         self.tree.heading("#4", text="Descrição")
-        self.tree.column("#5", anchor=tk.CENTER)
+        self.tree.column("#5", anchor=tk.E)
         self.tree.heading("#5", text="Valor")
         self.tree.column("#6", anchor=tk.CENTER)
         self.tree.heading("#6", text="Data")
 
          # Configurar tags para alinhar à esquerda
-        # self.tree.tag_configure("left", anchor="w")
+        self.tree.tag_configure("left", anchor="w")
 
         self.tree.pack(expand=True, fill=tk.BOTH)
 
