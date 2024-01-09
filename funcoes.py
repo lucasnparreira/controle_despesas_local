@@ -133,7 +133,10 @@ class ControleDespesasFuncoes:
                 return
 
             # Converter o valor para um tipo numérico (float) antes de inserir no banco de dados
-            valor = float(valor_str)
+            if self.combo_classificacao.get() == "Recebido":
+                valor = float(valor_str) * -1
+            else:
+                valor = float(valor_str)
 
             cursor = self.conexao_bd.cursor()
             cursor.execute("""
@@ -142,7 +145,7 @@ class ControleDespesasFuncoes:
             """, (classificacao, descricao, valor, tipo, str(data)))
             self.conexao_bd.commit()
             cursor.close()
-            messagebox.showinfo("Sucesso", "Despesa cadastrada com sucesso!")
+            messagebox.showinfo("Sucesso", "Item cadastrado com sucesso!")
 
             # Limpar os campos após o cadastro
             self.entry_descricao.delete(0, tk.END)
@@ -168,7 +171,7 @@ class ControleDespesasFuncoes:
         frame_relatorio.pack(padx=20, pady=20)
 
         # Criação de uma treeview para exibir os relatórios
-        self.tree = ttk.Treeview(frame_relatorio, column=("ID","Classificação","Tipo","Descrição", "Valor", "Data"),show='headings')
+        self.tree = ttk.Treeview(frame_relatorio, column=("ID","Classificação","Tipo","Descrição", "Valor", "Data","Saldo"),show='headings')
         self.tree.column("#1", anchor=tk.W)
         self.tree.heading("#1", text="ID")
         self.tree.column("#2", anchor=tk.W)
@@ -181,6 +184,8 @@ class ControleDespesasFuncoes:
         self.tree.heading("#5", text="Valor")
         self.tree.column("#6", anchor=tk.CENTER)
         self.tree.heading("#6", text="Data")
+        self.tree.column("#7", anchor=tk.E)
+        self.tree.heading("#7", text="Saldo")
 
          # Configurar tags para alinhar à esquerda
         self.tree.tag_configure("left", anchor="w")
@@ -192,9 +197,25 @@ class ControleDespesasFuncoes:
         cursor.execute("SELECT id,classificacao,tipo, descricao, valor, data FROM despesas")
         resultados = cursor.fetchall()
         #print("Resultados do banco de dados:", resultados) 
+        # for row in resultados:
+        #     self.tree.insert("", tk.END, values=row[0:], tags=("left",))
+        # cursor.close()
+        
+        # Inicializa o saldo
+        saldo = 0
+
+        # Calcula o saldo acumulado para cada transação
         for row in resultados:
-            self.tree.insert("", tk.END, values=row[0:], tags=("left",))
+            # Extrai o valor da transação
+            valor = float(row[4])
+
+            saldo += valor
+
+            # Insere a transação na Treeview, incluindo o saldo acumulado
+            self.tree.insert("", tk.END, values=(row[0], row[1], row[2], row[3], row[4], row[5], f"{saldo:.2f}"))
+
         cursor.close()
+
 
         # Define a largura das colunas com base no conteúdo
         for col in self.tree["columns"]:
@@ -307,7 +328,7 @@ class ControleDespesasFuncoes:
             self.conexao_bd.commit()
             cursor.close()
 
-            messagebox.showinfo("Sucesso", "Despesa editada com sucesso!")
+            messagebox.showinfo("Sucesso", "Item editado com sucesso!")
 
             # Atualizar a treeview com os dados atualizados
             tree.item(self.item_selecionado, values=(id_despesa, classificacao, descricao, valor, tipo, data))
@@ -316,7 +337,7 @@ class ControleDespesasFuncoes:
             self.carregar_relatorio()
 
         except Exception as e:
-            messagebox.showerror("Erro", f"Erro ao editar despesa: {str(e)}")
+            messagebox.showerror("Erro", f"Erro ao editar item: {str(e)}")
 
     def excluir_despesa(self, event):
         # Obter o item selecionado na treeview
@@ -326,7 +347,7 @@ class ControleDespesasFuncoes:
             return
 
         # Exibir uma caixa de diálogo de confirmação
-        resposta = messagebox.askyesno("Confirmação", "Tem certeza que deseja excluir esta despesa?")
+        resposta = messagebox.askyesno("Confirmação", "Tem certeza que deseja excluir este item?")
         
         if resposta:
             try:
@@ -339,13 +360,13 @@ class ControleDespesasFuncoes:
                 self.conexao_bd.commit()
                 cursor.close()
 
-                messagebox.showinfo("Sucesso", "Despesa excluída com sucesso!")
+                messagebox.showinfo("Sucesso", "Item excluído com sucesso!")
 
                 # Recarregar os dados do relatório após a exclusão
                 self.carregar_relatorio()
 
             except Exception as e:
-                messagebox.showerror("Erro", f"Erro ao excluir despesa: {str(e)}")
+                messagebox.showerror("Erro", f"Erro ao excluir item: {str(e)}")
 
     def verificar_tabela_despesas(self):
         try:
