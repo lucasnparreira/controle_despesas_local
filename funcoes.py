@@ -46,8 +46,8 @@ class ControleDespesasFuncoes:
         #caminho_imagem = "/Users/lucasparreira/Documents/Projects/controle_despesas/old-vintage-pc-clipart-design-illustration-free-png.png"
         caminho_imagem = r"C:\Users\U362062\Documents\Scripts\controle_despesas_local\old-vintage-pc-clipart-design-illustration-free-png.png"
         imagem_original = Image.open(caminho_imagem)
-        largura_desejada = 400  
-        altura_desejada = 300  
+        largura_desejada = 300  
+        altura_desejada = 200  
         imagem_redimensionada = imagem_original.resize((largura_desejada, altura_desejada))#, Image.ANTIALIAS)
         self.imagem = ImageTk.PhotoImage(imagem_redimensionada)
 
@@ -65,7 +65,7 @@ class ControleDespesasFuncoes:
         nova_janela.transient(self.root)
 
         frame_cadastro = tk.Frame(nova_janela)
-        frame_cadastro.pack(padx=20, pady=20)
+        frame_cadastro.pack(padx=60, pady=20)
 
         # Widgets para o cadastro
         lbl_classificacao = tk.Label(frame_cadastro, text="Classificação:")
@@ -112,9 +112,11 @@ class ControleDespesasFuncoes:
 
             # Preenche a treeview com os dados do banco de dados
             cursor = self.conexao_bd.cursor()
-            cursor.execute("SELECT * FROM despesas")
-            for row in cursor.fetchall():
-                self.tree.insert("", tk.END, values=row)
+            cursor.execute("SELECT id,classificacao,tipo, descricao, valor, data FROM despesas")
+            resultados = cursor.fetchall()
+            #print("Resultados do banco de dados:", resultados) 
+            for row in resultados:
+                self.tree.insert("", tk.END, values=row[0:], tags=("left",))
             cursor.close()
 
     def salvar_despesa(self):
@@ -166,16 +168,22 @@ class ControleDespesasFuncoes:
         frame_relatorio.pack(padx=20, pady=20)
 
         # Criação de uma treeview para exibir os relatórios
-        self.tree = ttk.Treeview(frame_relatorio, columns=("ID","Classificação","Tipo","Descrição", "Valor", "Data"))
-        self.tree.heading("#0", text="ID", anchor=tk.W)
-        self.tree.heading("#1", text="Classificação", anchor=tk.W)
-        self.tree.heading("#2", text="Tipo", anchor=tk.W)
-        self.tree.heading("#3", text="Descrição", anchor=tk.W)
-        self.tree.heading("#4", text="Valor", anchor=tk.W)
-        self.tree.heading("#5", text="Data", anchor=tk.W)
+        self.tree = ttk.Treeview(frame_relatorio, column=("ID","Classificação","Tipo","Descrição", "Valor", "Data"),show='headings')
+        self.tree.column("#1", anchor=tk.W)
+        self.tree.heading("#1", text="ID")
+        self.tree.column("#2", anchor=tk.CENTER)
+        self.tree.heading("#2", text="Classificação")
+        self.tree.column("#3", anchor=tk.CENTER)
+        self.tree.heading("#3", text="Tipo")
+        self.tree.column("#4", anchor=tk.CENTER)
+        self.tree.heading("#4", text="Descrição")
+        self.tree.column("#5", anchor=tk.CENTER)
+        self.tree.heading("#5", text="Valor")
+        self.tree.column("#6", anchor=tk.CENTER)
+        self.tree.heading("#6", text="Data")
 
          # Configurar tags para alinhar à esquerda
-        self.tree.tag_configure("left", anchor="w")
+        # self.tree.tag_configure("left", anchor="w")
 
         self.tree.pack(expand=True, fill=tk.BOTH)
 
@@ -185,7 +193,7 @@ class ControleDespesasFuncoes:
         resultados = cursor.fetchall()
         #print("Resultados do banco de dados:", resultados) 
         for row in resultados:
-            self.tree.insert("", tk.END, values=row[1:], tags=("left",))
+            self.tree.insert("", tk.END, values=row[0:], tags=("left",))
         cursor.close()
 
         # Define a largura das colunas com base no conteúdo

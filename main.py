@@ -30,17 +30,6 @@ class ControleDespesasApp:
         opcoes_menu.add_command(label="Sair", command=funcoes.sair)
 
 
-         # Widgets para o cadastro
-        self.entry_descricao = tk.Entry(self.root)
-        self.valor_var = StringVar()
-        self.entry_valor = tk.Entry(self.root,textvariable=self.valor_var)
-        self.tipos_despesa = ["Mensal", "Quinzenal", "Semanal"]
-        self.combo_tipo = tk.StringVar()
-        self.combo_tipo.set(self.tipos_despesa[0])
-        self.dropdown_tipo = tk.OptionMenu(self.root, self.combo_tipo, *self.tipos_despesa)
-        self.cal_data = DateEntry(self.root, width=12, background='darkblue', foreground='white', borderwidth=2)
-
-
 if __name__ == "__main__":
     root = tk.Tk()
     app = ControleDespesasApp(root)
