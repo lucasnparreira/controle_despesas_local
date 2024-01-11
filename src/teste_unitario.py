@@ -2,8 +2,8 @@ import sqlite3
 from tkinter import messagebox
 import unittest
 import tkinter as tk
-from main import ControleDespesasApp
-from funcoes import ControleDespesasFuncoes
+from src.main import ControleDespesasApp
+from src.funcoes import ControleDespesasFuncoes
 
 class TestControleDespesas(unittest.TestCase):
     def setUp(self):

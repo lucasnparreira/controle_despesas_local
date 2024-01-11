@@ -1,9 +1,12 @@
+from src.main import App
 import win32gui
 import win32con
 
 class SystemTray:
     def __init__(self):
-        self.icon = win32gui.LoadIcon(0, "C:\Users\U362062\Documents\Scripts\controle_despesas_local\Computer_icon.ico")
+        self.app = App()
+        icone = "computer_pc_10894.ico"
+        self.icon = win32gui.LoadIcon(0, icone)  # Carregue o ícone
         self.window = win32gui.CreateWindowEx(
             0,
             "SystemTrayWindow",

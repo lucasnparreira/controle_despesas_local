@@ -4,6 +4,8 @@ from tkcalendar import DateEntry
 from PIL import Image, ImageTk
 import sqlite3
 from tkinter import font
+import win32gui
+import win32con
 
 
 class ControleDespesasFuncoes:
@@ -44,7 +46,7 @@ class ControleDespesasFuncoes:
 
     def inicializar_interface(self):
         #caminho_imagem = "/Users/lucasparreira/Documents/Projects/controle_despesas/old-vintage-pc-clipart-design-illustration-free-png.png"
-        caminho_imagem = r"C:\Users\U362062\Documents\Scripts\controle_despesas_local\old-vintage-pc-clipart-design-illustration-free-png.png"
+        caminho_imagem = r"C:\Users\U362062\Documents\Scripts\controle_despesas_local\img\old-vintage-pc-clipart-design-illustration-free-png.png"
         imagem_original = Image.open(caminho_imagem)
         largura_desejada = 300  
         altura_desejada = 200  
@@ -196,12 +198,7 @@ class ControleDespesasFuncoes:
         cursor = self.conexao_bd.cursor()
         cursor.execute("SELECT id,classificacao,tipo, descricao, valor, data FROM despesas")
         resultados = cursor.fetchall()
-        #print("Resultados do banco de dados:", resultados) 
-        # for row in resultados:
-        #     self.tree.insert("", tk.END, values=row[0:], tags=("left",))
-        # cursor.close()
-        
-        # Inicializa o saldo
+       
         saldo = 0
 
         # Calcula o saldo acumulado para cada transação
@@ -389,3 +386,43 @@ class ControleDespesasFuncoes:
     def sair(self):
         self.conexao_bd.close()
         self.root.destroy()
+
+    #validar e aplicar funcoes para permitir o app ficar rodando na bandeija do sistema
+    def criar_bandeija_sistema():
+        # Carregue o ícone
+        icone = win32gui.LoadIcon(0, "computer_pc_10894.ico")
+
+        # Crie a janela da bandeja
+        window = win32gui.CreateWindowEx(
+            0,
+            "SystemTrayWindow",
+            "Controle de Despesas",
+            win32con.WS_OVERLAPPEDWINDOW,
+            0, 0, 100, 100,
+            0, 0, 0, 0
+        )
+        win32gui.SetWindowLong(window, win32con.GWL_STYLE, win32con.WS_CLIPCHILDREN)
+        win32gui.ShowWindow(window, win32con.SW_HIDE)
+
+        # Conecte o ícone à janela
+        win32gui.SetIcon(window, icone)
+
+        return window
+
+    def adicionar_bandeija(window):
+        # Obtenha o identificador da janela
+        window_id = win32gui.GetWindowThreadProcessId(window)
+
+        # Crie um menu para a bandeja
+        menu = win32gui.CreatePopupMenu()
+        win32gui.AppendMenu(menu, win32con.MF_STRING, 1, "Maximizar")
+        win32gui.AppendMenu(menu, win32con.MF_STRING, 2, "Fechar")
+
+        # Exiba o menu na bandeja
+        win32gui.TrackPopupMenu(menu, win32con.TPM_LEFTALIGN, 0, 0, 0, window, None)
+
+        # Conecte o menu à janela
+        win32gui.SetMenu(window, menu)
+
+        # Ative a exibição da bandeja
+        win32gui.Shell_NotifyIcon(win32con.NIM_ADD, win32gui.NIF_ICON | win32gui.NIF_MESSAGE | win32gui.NIF_TIP, window_id, icone, "Controle de Despesas", "Aplicativo rodando na bandeja")

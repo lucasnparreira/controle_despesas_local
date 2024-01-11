@@ -9,6 +9,7 @@ from PIL import Image, ImageTk
 from funcoes import ControleDespesasFuncoes
 #from bandeja import SystemTray
 
+
 class ControleDespesasApp:
 
     def __init__(self, root):
@@ -37,6 +38,7 @@ class ControleDespesasApp:
 if __name__ == "__main__":
     root = tk.Tk()
     app = ControleDespesasApp(root)
-    #app = SystemTray()
+    #window = ControleDespesasFuncoes.criar_bandeija_sistema()
+    #ControleDespesasFuncoes.adicionar_bandeija(window)
     root.mainloop()
 
